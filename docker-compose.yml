@@ -1,0 +1,32 @@
+# Relies on secrets.env containing
+#  - POSTGRES_PASSWORD
+#  - OIDC_RP_CLIENT_ID
+#  - OIDC_RP_CLIENT_SECRET
+#
+services:
+  db:
+    image: postgres:12
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - secrets.env
+    environment:
+      - POSTGRES_DB=rpctools
+      - POSTGRES_USER=rpc
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/workspace
+    ports:
+      - "8888:8000"
+    env_file:
+      - secrets.env
+    environment:
+      - POSTGRES_NAME=rpctools
+      - POSTGRES_USER=rpc
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
